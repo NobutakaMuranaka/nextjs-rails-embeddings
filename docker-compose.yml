@@ -1,0 +1,36 @@
+services:
+  backend:
+    build: ./backend
+    command: rails server -b 0.0.0.0 -p 3000
+    volumes:
+      - ./backend:/app
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+
+  db:
+    build: ./backend/db
+    environment:
+      POSTGRES_DB: suzukagpt_development
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_volume:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"
+
+  nextjs:
+    build: ./frontend
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+    ports:
+      - "3001:3001"
+    environment:
+      NEXT_PUBLIC_RAILS_API_URL: "http://localhost:3000"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_volume:
