@@ -38,15 +38,14 @@ class DocumentsController < ApplicationController
   end
 
 
-  def generate_embedding(content)
-    openai_api_key = ENV['OPENAI_API_KEY']
+    def generate_embedding(content)
     uri = URI('https://api.openai.com/v1/embeddings')
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = true
 
     request = Net::HTTP::Post.new(uri, {
       'Content-Type' => 'application/json',
-      'Authorization' => "Bearer #{openai_api_key}"
+      'Authorization' => "Bearer #{ENV['OPENAI_API_KEY']}"
     })
 
     request.body = {
@@ -55,12 +54,19 @@ class DocumentsController < ApplicationController
     }.to_json
 
     response = http.request(request)
-    if response.code == '200'
-      embedding = JSON.parse(response.body)['data'][0]['embedding']
-      embedding
+
+    if response.is_a?(Net::HTTPSuccess)
+      embedding_data = JSON.parse(response.body)['data'][0]['embedding']
+      if embedding_data.size == 1536  # エンベディングの次元数を確認
+        embedding_data
+      else
+        Rails.logger.error("Embedding has incorrect dimensions: #{embedding_data.size}")
+        raise "Invalid embedding dimensions"
+      end
     else
-      Rails.logger.error("Error generating embedding: #{response.body}")
-      []
+      error_message = JSON.parse(response.body)['error']['message']
+      Rails.logger.error("Error generating embedding: #{error_message}")
+      raise "OpenAI API error: #{error_message}"
     end
   end
 end

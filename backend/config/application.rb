@@ -2,6 +2,7 @@ require_relative "boot"
 
 require 'rails/all'
 require 'pgvector'
+require 'dotenv/load' if Rails.env.development? || Rails.env.test?
 
 Bundler.require(*Rails.groups)
 
