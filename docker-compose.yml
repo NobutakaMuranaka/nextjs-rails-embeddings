@@ -6,6 +6,9 @@ services:
       - ./backend:/app
     ports:
       - "3000:3000"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     depends_on:
       - db
 
@@ -20,7 +23,7 @@ services:
     ports:
       - "5434:5432"
 
-  nextjs:
+  frontend:
     build: ./frontend
     working_dir: /app
     volumes:
